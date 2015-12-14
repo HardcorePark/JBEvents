@@ -1,10 +1,13 @@
 #pragma semicolon 1
 
-#define PLUGIN_VERSION "1.10"
+#define PLUGIN_VERSION "1.11"
 #define PLUGIN_PREFIX "[\x06Tango Events\x01]"
 
 #include <sourcemod>
 #include <SDKtools>
+#include <basecomm>
+
+#include "JBEvents\subs.sp"
 
 enum EventsMenu
 {
@@ -37,24 +40,11 @@ public void OnPluginStart()
 	RegAdminCmd("sm_cancelevent", Command_cancelevent, ADMFLAG_RCON);
 	HookEvent("round_end", Event_RoundEnd);
 	
-	RegConsoleCmd("say", Command_SayChat);
-	RegConsoleCmd("say_team", Command_SayChat);
 }
 
 public Action Event_RoundEnd(Handle event, char[] name, bool dontBroadcast)
 {
 	ResetRound();
-}
-
-public Action Command_SayChat(client, args)
-{
-	if (g_PreSetup)
-	{
-		PrintToChat(client, "%s You've been silenced since there's an Event being made!");
-		return Plugin_Handled;
-	}
-	
-	return Plugin_Continue;
 }
 
 public Action Command_cancelevent(client, args)
@@ -78,7 +68,7 @@ public Action Command_cancelevent(client, args)
 		ServerCommand("sm_freeze @all 0");
 	
 	ResetRound();
-	return Plugin_Handled;
+	return Plugin_Continue;
 }
 
 public Action Command_jbevents(client, args)
@@ -94,7 +84,7 @@ public Action Command_jbevents(client, args)
 	AddMenuItem(events_menu, "0", "Micheal Myers");
 	DisplayMenu(events_menu, client, 0);
 	
-	return Plugin_Handled;
+	return Plugin_Continue;
 }
 
 public EventsMenuHandle(Handle menu, MenuAction action, client, option)
@@ -294,16 +284,6 @@ public UnloadPlugins()
 	}
 }
 
-public GagT()
-{
-	ServerCommand("sm_gag @t");
-}
-
-public MuteT()
-{
-	ServerCommand("sm_mute @t");
-}
-
 public ResetRound()
 {
 	if (g_DisarmT)
@@ -326,13 +306,13 @@ public ResetRound()
 	
 	if (g_MuteT)
 	{
-		ServerCommand("sm_unmute @t");
+		UnMuteT();
 		g_MuteT = false;
 	}
 	
 	if (g_GagT)
 	{
-		ServerCommand("sm_ungag @t");
+		UnGagT();
 		g_GagT = false;
 	}
 	
@@ -344,14 +324,4 @@ public ResetRound()
 	
 	g_EventInProgress = false;
 	g_PreSetup = false;
-}
-
-/* FUNCTIONS */
-stock bool IsValidPlayer(int client, bool alive = false)
-{
-   if(client >= 1 && client <= MaxClients && IsClientConnected(client) && IsClientInGame(client) && (alive == false || IsPlayerAlive(client)))
-   {
-       return true;
-   }
-   return false;
 }
