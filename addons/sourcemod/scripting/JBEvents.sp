@@ -1,6 +1,6 @@
 #pragma semicolon 1
 
-#define PLUGIN_VERSION "1.12"
+#define PLUGIN_VERSION "1.13"
 #define PLUGIN_PREFIX "[\x06Tango Events\x01]"
 
 #include <sourcemod>
@@ -51,13 +51,23 @@ public Action Command_chat(client, args)
 {
 	if (g_PreSetup)
 	{
-		PrintToChat(client, "%s Chat has been disabled due to upcomming event!", PLUGIN_PREFIX);
-		return Plugin_Handled;
+		bool isAdmin = false;
+		AdminId clientAdmin = GetUserAdmin(client);
+		if (clientAdmin != INVALID_ADMIN_ID)
+		{
+			isAdmin = true;
+		}
+		
+		if (isAdmin)
+		{
+			return Plugin_Continue;
+		} else {
+			PrintToChat(client, "%s Chat has been disabled due to upcomming event!", PLUGIN_PREFIX);
+			return Plugin_Handled;
+		}
 	}
 	return Plugin_Continue;
 }
-
-
 
 /* COMMANDS */
 public Action Command_jbevents(client, args)
@@ -73,7 +83,7 @@ public Action Command_jbevents(client, args)
 	AddMenuItem(events_menu, "0", "Micheal Myers");
 	DisplayMenu(events_menu, client, 0);
 	
-	return Plugin_Continue;
+	return Plugin_Handled;
 }
 
 public Action Command_cancelevent(client, args)
@@ -97,7 +107,7 @@ public Action Command_cancelevent(client, args)
 		ServerCommand("sm_freeze @all 0");
 	
 	ResetRound();
-	return Plugin_Continue;
+	return Plugin_Handled;
 }
 
 /* MAIN SUBS */
@@ -213,6 +223,7 @@ public InitiateEvent(client)
 		g_AllFrozen = false;
 		
 	g_EventInProgress = true;
+	g_PreSetup = false;
 }
 
 public UnloadPlugins()
