@@ -1,6 +1,6 @@
 #pragma semicolon 1
 
-#define PLUGIN_VERSION "1.02"
+#define PLUGIN_VERSION "1.03"
 #define PLUGIN_PREFIX "[\x06Tango Events\x01]"
 
 #include <sourcemod>
@@ -18,6 +18,9 @@ public Plugin myinfo =
 	version = PLUGIN_VERSION,
 	url = "www.tangoworldwide.net",
 };
+
+bool g_MMDisarmT;
+int g_LastPage[MAXPLAYERS + 1];
 
 public void OnPluginStart()
 {
@@ -63,11 +66,38 @@ public EventsMenuHandle(Handle menu, MenuAction action, client, option)
 public MichealMyersMenu(client)
 {
 	Handle mm_menu = CreateMenu(MmMenuHandle, MENU_ACTIONS_ALL);
-	SetMenuTitle(mm_menu, "Tango Events - Micheal Myers");	
+	SetMenuTitle(mm_menu, "Tango Events - Micheal Myers");
+	
+	char taTmp[256];
+	
+	if (g_MMDisarmT)
+	{
+		Format(taTmp, sizeof(taTmp), "T's Disarmed - Yes");
+	} else {
+		Format(taTmp, sizeof(taTmp), "T's Disarmed - No");
+	}
+	AddMenuItem(mm_menu, taTmp, taTmp);
+	
 }
 
 public MmMenuHandle(Handle menu, MenuAction action, client, option)
 {
-	
+	if (action == MenuAction_Select)
+	{
+		switch (option)
+		{
+			case 0:
+			{
+				if (g_MMDisarmT)
+				{
+					g_MMDisarmT = false;
+				} else {
+					g_MMDisarmT = true;
+				}
+			}
+		}
+		
+		g_LastPage[client] = option;
+	}
 }
 
